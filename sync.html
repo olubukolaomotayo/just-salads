@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Just Salads (synced)</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Just Salads" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#2e8b3d" />
+<link rel="icon" href="logo.jpeg" />
+<link rel="apple-touch-icon" href="logo.jpeg" />
+<style>
+  :root{--green:#2e8b3d;--green-dark:#236e30;--green-soft:#e8f3ea;--purple:#5f2a86;--purple-soft:#efe8f5;
+        --ink:#23302a;--line:#dbe2dc;--paper:#fff;--shade:#f5f8f5;--warn:#b03a2e;--amber:#8a5a12;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--shade);line-height:1.45;-webkit-text-size-adjust:100%;}
+  header{background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 60%,var(--purple) 160%);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:14px;}
+  header img{width:54px;height:54px;border-radius:12px;background:#fff;object-fit:cover;flex:0 0 auto;}
+  header h1{margin:0;font-size:1.35rem;font-weight:700;letter-spacing:.3px;}
+  header p{margin:3px 0 0;font-size:.82rem;opacity:.92;}
+  .acct{margin-left:auto;text-align:right;font-size:.72rem;opacity:.95;}
+  .acct button{margin-top:4px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:4px 8px;font-size:.72rem;cursor:pointer;}
+  .wrap{max-width:820px;margin:0 auto;padding:16px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
+  h2{font-size:1.05rem;margin:0 0 12px;} h3{font-size:.92rem;margin:16px 0 8px;color:var(--purple);}
+  label{display:block;font-size:.78rem;font-weight:600;margin-bottom:4px;color:#4a5a50;}
+  select,input[type=text],input[type=number],input[type=date]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:1rem;background:#fff;color:var(--ink);}
+  .row{display:flex;gap:10px;flex-wrap:wrap;} .row>div{flex:1;min-width:100px;}
+  button{font-family:inherit;font-size:.95rem;border:none;border-radius:8px;padding:10px 14px;cursor:pointer;}
+  .btn-primary{background:var(--green);color:#fff;} .btn-purple{background:var(--purple);color:#fff;}
+  .btn-ghost{background:var(--green-soft);color:var(--green-dark);} .btn-ghost-p{background:var(--purple-soft);color:var(--purple);}
+  .btn-small{padding:6px 10px;font-size:.8rem;} .btn-danger{background:#fdecea;color:var(--warn);}
+  .muted{color:#7a887f;font-size:.82rem;}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .pill{display:inline-block;background:var(--green-soft);color:var(--green-dark);border-radius:999px;padding:3px 10px;font-size:.78rem;font-weight:600;}
+  .hint{background:var(--green-soft);border-radius:8px;padding:10px 12px;font-size:.84rem;margin-bottom:14px;}
+  .stack>*+*{margin-top:10px;} .center{text-align:center;}
+  footer{text-align:center;padding:18px;font-size:.78rem;color:#9aa89f;}
+  .size-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .size-row:last-child{border-bottom:none;} .size-info{flex:1;} .size-info .nm{font-weight:600;}
+  .size-qty{width:84px;flex:0 0 auto;} .size-qty input{text-align:center;font-weight:700;}
+  .shop-item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .shop-item:last-child{border-bottom:none;} .shop-name{font-weight:600;} .shop-rule{font-size:.74rem;color:var(--amber);font-style:italic;margin-top:2px;}
+  .shop-buy{text-align:right;white-space:nowrap;} .shop-buy .big{font-weight:800;color:var(--green-dark);font-size:1rem;} .shop-buy .sub{font-size:.74rem;color:#7a887f;}
+  .money-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.95rem;}
+  .money-line .v{font-weight:700;} .money-line.total{border-bottom:none;font-size:1.05rem;}
+  .money-line.profit .v{color:var(--green-dark);} .money-line.tax .v{color:var(--purple);} .neg{color:var(--warn)!important;}
+  .headline{background:var(--purple-soft);border-radius:10px;padding:12px;margin-bottom:12px;text-align:center;}
+  .headline .amt{font-size:1.7rem;font-weight:800;color:var(--purple);} .headline .lbl{font-size:.8rem;color:#6a5a78;}
+  .ing-row{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:var(--shade);}
+  .ing-row .row{align-items:end;} .grow2{flex:2!important;min-width:150px;}
+  .ver{border-left:3px solid var(--line);padding:6px 0 6px 12px;margin:8px 0;} .ver.current{border-left-color:var(--green);} .ver h4{margin:0;font-size:.9rem;}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+  details summary{cursor:pointer;font-weight:600;color:var(--purple);padding:6px 0;}
+  .price-item{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;} .price-item .cur{font-weight:600;}
+  .price-hist{font-size:.78rem;color:#7a887f;margin-top:4px;padding-left:8px;border-left:2px solid var(--line);}
+  /* login + sync */
+  #loginOverlay{position:fixed;inset:0;background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 55%,var(--purple) 140%);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;z-index:50;}
+  #loginOverlay .box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:28px;max-width:380px;width:100%;text-align:center;}
+  #loginOverlay img{width:88px;height:88px;border-radius:18px;background:#fff;margin-bottom:14px;}
+  #loginOverlay h1{margin:0 0 4px;font-size:1.5rem;} #loginOverlay p{opacity:.92;font-size:.9rem;margin:6px 0 18px;}
+  #googleBtn{width:100%;background:#fff;color:#222;font-weight:600;border:none;border-radius:10px;padding:13px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:1rem;}
+  #googleBtn svg{width:20px;height:20px;}
+  #loginMsg{margin-top:14px;font-size:.82rem;min-height:1.2em;}
+  .syncbar{font-size:.72rem;color:#7a887f;text-align:center;padding:2px 0 10px;}
+  .cloud-ok{color:var(--green-dark);} .cloud-wait{color:var(--amber);}
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="box">
+    <img src="logo.jpeg" alt="Just Salads" />
+    <h1>Just Salads</h1>
+    <p>Sign in to sync your recipes and prices across your phone and laptops.</p>
+    <button id="googleBtn">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.5 28.3c-.5-1.4-.8-2.9-.8-4.3s.3-3 .8-4.3l-7.9-6.1C1 16.7 0 20.2 0 24s1 7.3 2.6 10.4l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.3 0-11.6-3.7-13.5-9.3l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<header>
+  <img src="logo.jpeg" alt="Just Salads logo" />
+  <div><h1>Just Salads</h1><p>Synced across your devices</p></div>
+  <div class="acct"><div id="acctEmail"></div><button id="signOutBtn">Sign out</button></div>
+</header>
+
+<div class="wrap">
+  <div class="syncbar" id="syncBar"></div>
+
+  <div class="card">
+    <label for="recipeSelect">Salad</label>
+    <div class="flex-between" style="gap:8px;">
+      <select id="recipeSelect" style="flex:1;"></select>
+      <span id="baseInfo" class="pill"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1 &middot; Build the order</h2>
+    <div class="hint">Enter how many of each size were ordered. The app adds up the pounds for ingredients and the correct price for each size.</div>
+    <div id="sizeRows"></div>
+    <div style="margin-top:12px;">
+      <label for="extraLb">Extra to make, not sold (lb)</label>
+      <input type="number" id="extraLb" min="0" step="any" placeholder="0" />
+      <p class="muted" style="margin:4px 0 0;">Adds to ingredients and cost, not to revenue. Your profit reflects the freebie.</p>
+    </div>
+    <div class="flex-between" style="margin-top:12px;">
+      <div><span class="muted">Total for ingredients</span><br><strong id="totalLb" style="font-size:1.2rem;">0 lb</strong></div>
+      <div style="text-align:right;"><span class="muted">Containers</span><br><strong id="totalContainers" style="font-size:1.2rem;">0</strong></div>
+      <div style="text-align:right;"><span class="muted">Revenue</span><br><strong id="totalRevenue" style="font-size:1.2rem;color:var(--purple);">$0.00</strong></div>
+    </div>
+  </div>
+
+  <div class="card" id="moneyCard" style="display:none;">
+    <h2>2 &middot; Cost, profit &amp; tax</h2>
+    <div class="headline"><div class="amt" id="takeHome">$0.00</div><div class="lbl">Your take-home after cost and tax set-aside</div></div>
+    <div class="money-line"><span>Revenue (what customers pay)</span><span class="v" id="mRevenue">$0.00</span></div>
+    <div class="money-line"><span>Ingredient cost, used <span class="muted">(leftovers carry over)</span></span><span class="v" id="mIngUsed">$0.00</span></div>
+    <div class="money-line"><span>Packaging (pans + covers)</span><span class="v" id="mPack">$0.00</span></div>
+    <div class="money-line"><span>Overhead (labour, power, transport, consumables)</span><span class="v" id="mOverhead">$0.00</span></div>
+    <div class="money-line total"><span>Total cost</span><span class="v" id="mTotalCost">$0.00</span></div>
+    <div class="money-line profit total"><span>Profit</span><span class="v" id="mProfit">$0.00</span></div>
+    <div class="money-line tax"><span>Set aside for taxes (<span id="taxPctLabel">30</span>% of profit)</span><span class="v" id="mTax">$0.00</span></div>
+    <div class="money-line profit total"><span><strong>Keep (take-home)</strong></span><span class="v" id="mKeep">$0.00</span></div>
+    <div class="money-line"><span class="muted">Profit margin</span><span class="v muted" id="mMargin">0%</span></div>
+    <details style="margin-top:10px;">
+      <summary>If you buy every package fresh this trip</summary>
+      <div class="money-line" style="margin-top:8px;"><span>Ingredient cost, full packages</span><span class="v" id="mIngBuy">$0.00</span></div>
+      <div class="money-line"><span>Total cost (buying fresh)</span><span class="v" id="mTotalCostBuy">$0.00</span></div>
+      <div class="money-line profit"><span>Profit (buying fresh)</span><span class="v" id="mProfitBuy">$0.00</span></div>
+    </details>
+  </div>
+
+  <div class="card" id="shopCard" style="display:none;">
+    <div class="flex-between"><h2 style="margin:0;">3 &middot; Shopping list</h2><span class="pill" id="shopSpend">$0.00</span></div>
+    <p class="muted" style="margin:6px 0 4px;">Whole packages to buy (rounded up so you never run short). Weigh-items show exact grams. Store shown for each.</p>
+    <div id="shoppingList"></div>
+  </div>
+
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:8px;"><h2 style="margin:0;">Your salads &amp; settings</h2>
+      <button class="btn-ghost btn-small" id="newRecipeBtn">+ New salad</button></div>
+    <div id="recipeList"></div>
+    <p class="muted" id="emptyState" style="display:none;">No salads yet. Tap <strong>Restore from backup</strong> below to load your recipe, or <strong>+ New salad</strong> to start fresh. It will sync to all your devices.</p>
+  </div>
+
+  <div class="card" id="editorArea" style="display:none;">
+    <h2 id="editorTitle">Edit salad</h2>
+    <div class="stack">
+      <div><label for="recipeName">Salad name</label><input type="text" id="recipeName" /></div>
+      <h3>Recipe formula (this creates versions)</h3>
+      <div class="row">
+        <div><label for="baseQty">Base batch makes</label><input type="number" step="any" id="baseQty" /></div>
+        <div><label for="baseUnit">Unit</label><input type="text" id="baseUnit" placeholder="lb" /></div>
+        <div><label for="verLabel">Version label</label><input type="text" id="verLabel" placeholder="v2" /></div>
+        <div><label for="verDate">Revised</label><input type="text" id="verDate" placeholder="Jun 2026" /></div>
+      </div>
+      <div><label>Ingredients</label><div id="ingredientRows"></div>
+        <button class="btn-ghost btn-small" id="addIngredientBtn">+ Add ingredient</button></div>
+      <div class="hint" style="margin:0;"><label style="display:flex;align-items:center;gap:8px;font-size:.9rem;">
+        <input type="checkbox" id="asNewVersion" style="width:auto;" /> Save the formula as a <strong>new version</strong> (keeps the current one in history)</label></div>
+      <h3>Selling sizes, prices &amp; packaging</h3>
+      <p class="muted" style="margin:0 0 8px;">Pan and cover cost is per container. Handy Bowl oblong pan comes with its cover, so cover = 0.</p>
+      <div id="sizeEditRows"></div>
+      <button class="btn-ghost-p btn-small" id="addSizeBtn">+ Add size</button>
+      <h3>Overhead (flat per order, editable)</h3>
+      <div class="row">
+        <div><label>Labour rate $/hr</label><input type="number" step="any" id="ohLabourRate" /></div>
+        <div><label>Labour hours</label><input type="number" step="any" id="ohLabourHours" /></div>
+        <div><label>Electricity $</label><input type="number" step="any" id="ohElec" /></div>
+      </div>
+      <div class="row">
+        <div><label>Transport $</label><input type="number" step="any" id="ohTransport" /></div>
+        <div><label>Consumables $ (incl. stickers)</label><input type="number" step="any" id="ohConsum" /></div>
+        <div><label>Tax set-aside %</label><input type="number" step="any" id="taxRate" /></div>
+      </div>
+      <div class="flex-between" style="margin-top:8px;">
+        <button class="btn-danger btn-small" id="deleteRecipeBtn">Delete salad</button>
+        <div><button class="btn-ghost btn-small" id="cancelEditBtn">Cancel</button>
+        <button class="btn-primary btn-small" id="saveRecipeBtn">Save</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="priceArea" style="display:none;">
+    <div class="flex-between" style="margin-bottom:8px;"><h2 id="priceTitle" style="margin:0;">Prices &amp; stores</h2>
+      <button class="btn-ghost btn-small" id="closePriceBtn">Close</button></div>
+    <p class="muted" style="margin:0 0 10px;">Tap "Update price" when a store price changes. The old price and store are kept in history automatically.</p>
+    <div id="priceBody"></div>
+  </div>
+
+  <div class="card" id="historyArea" style="display:none;">
+    <div class="flex-between" style="margin-bottom:8px;"><h2 id="historyTitle" style="margin:0;">History</h2>
+      <button class="btn-ghost btn-small" id="closeHistoryBtn">Close</button></div>
+    <div id="historyBody"></div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn-ghost btn-small" id="backupBtn">Download backup</button>
+      <button class="btn-ghost btn-small" id="restoreBtn">Restore from backup</button>
+      <input type="file" id="restoreFile" accept="application/json" style="display:none;" />
+    </div>
+    <p class="muted center" style="margin:10px 0 0;">Your data is stored in your private cloud account and cached on this device. Backups are an extra safety copy.</p>
+  </div>
+</div>
+
+<footer>Just Salads &middot; synced &middot; your data is private to your login</footer>
+
+<!-- Firebase (loaded from Google's CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============================================================
+   FIREBASE CONFIG  ->  paste your project's config here.
+   These values are safe to be public: security comes from your
+   Google login plus the Firestore rules that lock data to you.
+   ============================================================ */
+var firebaseConfig = {
+  apiKey: "PASTE_apiKey",
+  authDomain: "PASTE_authDomain",
+  projectId: "PASTE_projectId",
+  appId: "PASTE_appId"
+};
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var CACHE_KEY="justSalads.cache", salads=[], editingId=null, historyId=null, priceId=null, orderQty={}, orderExtra=0;
+  var auth=null, db=null, uid=null, unsub=null, saveTimer=null, ready=false;
+  var el=function(id){return document.getElementById(id);};
+
+  // ---------- Firebase / auth ----------
+  function configReady(){ return firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("PASTE")!==0; }
+
+  function initFirebase(){
+    if(!configReady()){ el("loginMsg").textContent="Setup not finished yet. Add your Firebase details to activate sync."; el("googleBtn").disabled=true; el("googleBtn").style.opacity=".6"; return; }
+    firebase.initializeApp(firebaseConfig);
+    auth=firebase.auth(); db=firebase.firestore();
+    try{ db.enablePersistence({synchronizeTabs:true}).catch(function(){}); }catch(e){}
+    auth.getRedirectResult().catch(function(err){ el("loginMsg").textContent=err.message||""; });
+    auth.onAuthStateChanged(onAuth);
+  }
+
+  function signIn(){
+    var provider=new firebase.auth.GoogleAuthProvider();
+    el("loginMsg").textContent="Opening Google sign-in...";
+    auth.signInWithPopup(provider).catch(function(err){
+      // popups are often blocked in phone home-screen apps: fall back to redirect
+      if(err && (err.code==="auth/popup-blocked"||err.code==="auth/operation-not-supported-in-this-environment"||err.code==="auth/cancelled-popup-request"||err.code==="auth/popup-closed-by-user")){
+        auth.signInWithRedirect(provider);
+      } else { el("loginMsg").textContent=err.message||"Sign-in failed."; }
+    });
+  }
+
+  function onAuth(user){
+    if(user){
+      uid=user.uid;
+      el("loginOverlay").style.display="none";
+      el("acctEmail").textContent=user.email||"";
+      startSync();
+    } else {
+      uid=null; ready=false;
+      if(unsub){ unsub(); unsub=null; }
+      el("loginOverlay").style.display="flex";
+      el("acctEmail").textContent="";
+    }
+  }
+
+  function startSync(){
+    setSyncBar("wait","Connecting to your cloud...");
+    unsub=db.collection("users").doc(uid).onSnapshot(function(doc){
+      var data=(doc.exists && doc.data().salads) ? doc.data().salads : null;
+      salads = Array.isArray(data)?data:[];
+      cacheLocal(); ready=true;
+      var from = doc.metadata.fromCache ? "offline copy" : "synced";
+      setSyncBar("ok","All changes save to your cloud automatically · "+from);
+      refreshRecipeSelect(); refreshRecipeList();
+    }, function(err){ setSyncBar("wait","Offline. Changes save locally and sync when you reconnect."); });
+  }
+
+  function setSyncBar(kind,msg){ var b=el("syncBar"); b.textContent=msg; b.className="syncbar "+(kind==="ok"?"cloud-ok":"cloud-wait"); }
+  function cacheLocal(){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify(salads)); }catch(e){} }
+
+  function save(){
+    cacheLocal();
+    if(db && uid){
+      if(saveTimer) clearTimeout(saveTimer);
+      saveTimer=setTimeout(function(){
+        db.collection("users").doc(uid).set({salads:salads, updated: firebase.firestore.FieldValue.serverTimestamp()})
+          .catch(function(){ setSyncBar("wait","Saved locally. Will sync when you reconnect."); });
+      },400);
+    }
+  }
+
+  el("googleBtn").addEventListener("click",signIn);
+  el("signOutBtn").addEventListener("click",function(){ if(auth) auth.signOut(); });
+
+  // ---------- helpers ----------
+  function uidGen(p){ return (p||"id")+Math.random().toString(36).slice(2,9); }
+  function today(){ try{return new Date().toISOString().slice(0,10);}catch(e){return "";} }
+  function money(n){ return (n<0?"-$":"$")+Math.abs(n).toFixed(2); }
+  function fmtG(n){ return Math.round(n).toLocaleString("en-US"); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function num(v,d){ var n=parseFloat(v); return isFinite(n)?n:(d||0); }
+  function findSalad(id){ for(var i=0;i<salads.length;i++) if(salads[i].id===id) return salads[i]; return null; }
+  function curVer(s){ for(var i=0;i<s.versions.length;i++) if(s.versions[i].vid===s.currentVersionId) return s.versions[i]; return s.versions[s.versions.length-1]; }
+  function currentSalad(){ return findSalad(el("recipeSelect").value); }
+
+  function refreshRecipeSelect(){
+    var sel=el("recipeSelect"), prev=sel.value; sel.innerHTML="";
+    salads.forEach(function(s){var o=document.createElement("option");o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
+    if(findSalad(prev)) sel.value=prev;
+    orderQty={}; orderExtra=0; renderOrder();
+  }
+
+  function renderOrder(){
+    var s=currentSalad();
+    el("emptyState").style.display = salads.length ? "none" : "block";
+    if(!s){ el("sizeRows").innerHTML=""; el("baseInfo").textContent=""; el("moneyCard").style.display="none"; el("shopCard").style.display="none"; el("totalLb").textContent="0 lb"; el("totalContainers").textContent="0"; el("totalRevenue").textContent="$0.00"; return; }
+    var v=curVer(s);
+    el("baseInfo").textContent="Base "+fmtG(v.baseQty)+" "+v.baseUnit+" · "+v.label;
+    var box=el("sizeRows"); box.innerHTML="";
+    s.sizes.forEach(function(sz){
+      var row=document.createElement("div"); row.className="size-row";
+      row.innerHTML="<div class='size-info'><div class='nm'>"+esc(sz.label)+"</div><div class='muted'>"+sz.lb+" lb · "+money(sz.price)+"</div></div>"+
+        "<div class='size-qty'><input type='number' min='0' step='1' value='"+(orderQty[sz.id]||"")+"' placeholder='0'></div>";
+      var inp=row.querySelector("input");
+      inp.addEventListener("input",function(){ orderQty[sz.id]=num(inp.value,0); recalc(); });
+      box.appendChild(row);
+    });
+    el("extraLb").value = orderExtra ? orderExtra : "";
+    recalc();
+  }
+
+  function computeIngredient(ing,factor){
+    var need=ing.amount*factor, perUnit=ing.priceQty>0?ing.price/ing.priceQty:0;
+    var usedCost=need*perUnit, buyCost=usedCost, buyBig, buySub;
+    var store=ing.store?(" · "+ing.store):"";
+    if(ing.buy==="count"){ var whole=Math.round(need); usedCost=whole*perUnit; buyCost=usedCost; buyBig=whole+" "+(ing.unit||""); buySub=money(usedCost)+store; }
+    else if(ing.buy==="package"&&ing.pkgSize>0){ var packs=Math.ceil(need/ing.pkgSize); buyCost=packs*(ing.pkgSize*perUnit); buyBig=packs+" × "+(ing.pkgLabel||"pack"); buySub="needs "+fmtG(need)+" "+ing.unit+" · "+money(buyCost)+store; }
+    else { buyBig="weigh "+fmtG(need)+" "+ing.unit; buySub=(ing.pkgLabel?"from "+ing.pkgLabel+" · ":"")+money(usedCost)+store; }
+    return {need:need,usedCost:usedCost,buyCost:buyCost,buyBig:buyBig,buySub:buySub,name:ing.name,note:ing.note};
+  }
+
+  function recalc(){
+    var s=currentSalad(); if(!s) return; var v=curVer(s), oh=s.overhead;
+    var paidLb=0,containers=0,revenue=0,packaging=0;
+    s.sizes.forEach(function(sz){var q=orderQty[sz.id]||0; paidLb+=q*sz.lb; containers+=q; revenue+=q*sz.price; packaging+=q*((sz.panCost||0)+(sz.coverCost||0));});
+    var extraLb=orderExtra||0, totalLb=paidLb+extraLb;
+    el("totalLb").innerHTML=(Math.round(totalLb*100)/100)+" lb"+(extraLb>0?"<br><span class='muted' style='font-size:.7rem;'>"+(Math.round(paidLb*100)/100)+" sold + "+(Math.round(extraLb*100)/100)+" extra</span>":"");
+    el("totalContainers").textContent=containers; el("totalRevenue").textContent=money(revenue);
+    if(totalLb<=0||!v.baseQty){ el("moneyCard").style.display="none"; el("shopCard").style.display="none"; return; }
+    var factor=totalLb/v.baseQty, ingUsed=0, ingBuy=0, shopHtml="", shopSpend=0;
+    v.ingredients.forEach(function(ing){
+      var r=computeIngredient(ing,factor); ingUsed+=r.usedCost; ingBuy+=r.buyCost; shopSpend+=r.buyCost;
+      shopHtml+="<div class='shop-item'><div><div class='shop-name'>"+esc(r.name)+"</div>"+(r.note?"<div class='shop-rule'>"+esc(r.note)+"</div>":"")+"</div>"+
+        "<div class='shop-buy'><div class='big'>"+esc(r.buyBig)+"</div><div class='sub'>"+esc(r.buySub)+"</div></div></div>";
+    });
+    shopHtml+="<div class='shop-item'><div><div class='shop-name'>Pans + covers</div><div class='shop-rule'>one per container</div></div>"+
+      "<div class='shop-buy'><div class='big'>"+containers+" each</div><div class='sub'>"+money(packaging)+"</div></div></div>";
+    el("shoppingList").innerHTML=shopHtml; el("shopSpend").textContent=money(shopSpend+packaging); el("shopCard").style.display="block";
+    var labour=oh.labourRate*oh.labourHours, overhead=labour+num(oh.electricity)+num(oh.transport)+num(oh.consumables);
+    var totalUsed=ingUsed+packaging+overhead, totalBuy=ingBuy+packaging+overhead;
+    var profit=revenue-totalUsed, profitBuy=revenue-totalBuy, taxRate=num(s.taxRate,0), tax=Math.max(0,profit)*taxRate/100, keep=profit-tax;
+    var margin=revenue>0?(profit/revenue*100):0;
+    el("takeHome").textContent=money(keep); el("mRevenue").textContent=money(revenue); el("mIngUsed").textContent=money(ingUsed);
+    el("mPack").textContent=money(packaging); el("mOverhead").textContent=money(overhead); el("mTotalCost").textContent=money(totalUsed);
+    setMoney("mProfit",profit); el("taxPctLabel").textContent=taxRate; el("mTax").textContent=money(tax); setMoney("mKeep",keep);
+    el("mMargin").textContent=(Math.round(margin*10)/10)+"%"; el("mIngBuy").textContent=money(ingBuy); el("mTotalCostBuy").textContent=money(totalBuy);
+    setMoney("mProfitBuy",profitBuy); el("moneyCard").style.display="block";
+  }
+  function setMoney(id,v){ var n=el(id); n.textContent=money(v); n.classList.toggle("neg",v<0); }
+
+  el("recipeSelect").addEventListener("change",function(){ orderQty={}; orderExtra=0; renderOrder(); });
+  el("extraLb").addEventListener("input",function(){ orderExtra=num(el("extraLb").value,0); recalc(); });
+
+  function refreshRecipeList(){
+    var list=el("recipeList"); list.innerHTML="";
+    salads.forEach(function(s){
+      var v=curVer(s);
+      var wrap=document.createElement("div"); wrap.className="flex-between"; wrap.style.cssText="padding:10px 0;border-bottom:1px solid var(--line)";
+      wrap.innerHTML="<div><strong>"+esc(s.name)+"</strong><br><span class='muted'>"+v.ingredients.length+" ingredients · "+s.sizes.length+" sizes · "+esc(v.label)+(s.versions.length>1?" · "+s.versions.length+" versions":"")+"</span></div>";
+      var btns=document.createElement("div");
+      [["Edit","btn-ghost",function(){openEditor(s.id);}],["Prices","btn-ghost-p",function(){openPrices(s.id);}],["History","btn-ghost",function(){openHistory(s.id);}]].forEach(function(b,i){
+        var x=document.createElement("button"); x.className=b[1]+" btn-small"; x.textContent=b[0]; if(i) x.style.marginLeft="6px"; x.addEventListener("click",b[2]); btns.appendChild(x);
+      });
+      wrap.appendChild(btns); list.appendChild(wrap);
+    });
+  }
+
+  // ---- editor ----
+  function makeIngredientRow(ing){
+    ing=ing||{name:"",amount:"",unit:"g",buy:"package",pkgSize:"",pkgLabel:"",price:"",priceQty:"",store:"",note:""};
+    var row=document.createElement("div"); row.className="ing-row";
+    function opt(v,l,sel){return "<option value='"+v+"'"+(sel===v?" selected":"")+">"+l+"</option>";}
+    row.innerHTML=
+      "<div class='row'>"+
+        "<div class='grow2'><label>Ingredient</label><input type='text' class='i-name' value='"+esc(ing.name)+"'></div>"+
+        "<div><label>Base amount</label><input type='number' step='any' class='i-amt' value='"+(ing.amount===""?"":ing.amount)+"'></div>"+
+        "<div><label>Unit</label><input type='text' class='i-unit' value='"+esc(ing.unit)+"'></div>"+
+      "</div><div class='row' style='margin-top:8px;'>"+
+        "<div><label>How to buy</label><select class='i-buy'>"+opt("package","By package",ing.buy)+opt("weigh","Weigh exact",ing.buy)+opt("count","Whole count",ing.buy)+"</select></div>"+
+        "<div><label>Package size</label><input type='number' step='any' class='i-psize' value='"+(ing.pkgSize==null||ing.pkgSize===""?"":ing.pkgSize)+"'></div>"+
+        "<div class='grow2'><label>Package name</label><input type='text' class='i-plabel' value='"+esc(ing.pkgLabel)+"'></div>"+
+      "</div><div class='row' style='margin-top:8px;'>"+
+        "<div><label>Price $</label><input type='number' step='any' class='i-price' value='"+(ing.price===""||ing.price==null?"":ing.price)+"'></div>"+
+        "<div><label>for how much</label><input type='number' step='any' class='i-pqty' value='"+(ing.priceQty===""||ing.priceQty==null?"":ing.priceQty)+"'></div>"+
+        "<div><label>Store</label><input type='text' class='i-store' value='"+esc(ing.store)+"'></div>"+
+      "</div><div class='row' style='margin-top:8px;'>"+
+        "<div class='grow2'><label>Rule / note</label><input type='text' class='i-note' value='"+esc(ing.note)+"'></div>"+
+        "<div style='flex:0 0 auto;'><label>&nbsp;</label><button class='btn-danger btn-small i-del'>✕</button></div>"+
+      "</div>";
+    row.querySelector(".i-del").addEventListener("click",function(){row.remove();});
+    row._ing=ing; return row;
+  }
+  function makeSizeRow(sz){
+    sz=sz||{label:"",lb:"",price:"",panCost:"",coverCost:""};
+    var row=document.createElement("div"); row.className="ing-row";
+    row.innerHTML=
+      "<div class='row'>"+
+        "<div class='grow2'><label>Size name</label><input type='text' class='s-label' value='"+esc(sz.label)+"'></div>"+
+        "<div><label>Weight (lb)</label><input type='number' step='any' class='s-lb' value='"+(sz.lb===""?"":sz.lb)+"'></div>"+
+        "<div><label>Price $</label><input type='number' step='any' class='s-price' value='"+(sz.price===""?"":sz.price)+"'></div>"+
+      "</div><div class='row' style='margin-top:8px;'>"+
+        "<div><label>Pan cost each $</label><input type='number' step='any' class='s-pan' value='"+(sz.panCost===""||sz.panCost==null?"":Math.round(sz.panCost*1000)/1000)+"'></div>"+
+        "<div><label>Cover cost each $</label><input type='number' step='any' class='s-cover' value='"+(sz.coverCost===""||sz.coverCost==null?"":Math.round(sz.coverCost*1000)/1000)+"'></div>"+
+        "<div class='grow2'><label>Pan note</label><input type='text' class='s-note' value='"+esc(sz.panNote||"")+"'></div>"+
+        "<div style='flex:0 0 auto;'><label>&nbsp;</label><button class='btn-danger btn-small s-del'>✕</button></div>"+
+      "</div>";
+    row.querySelector(".s-del").addEventListener("click",function(){row.remove();});
+    return row;
+  }
+  function openEditor(id){
+    closeHistory(); closePrices(); editingId=id;
+    var s=id?findSalad(id):null, v=s?curVer(s):null, oh=s?s.overhead:{};
+    el("editorTitle").textContent=s?("Edit — "+s.name):"New salad";
+    el("recipeName").value=s?s.name:""; el("baseQty").value=v?v.baseQty:10; el("baseUnit").value=v?v.baseUnit:"lb";
+    el("verLabel").value=v?v.label:"v1"; el("verDate").value=v?v.date:""; el("asNewVersion").checked=false;
+    el("deleteRecipeBtn").style.display=id?"inline-block":"none";
+    var ir=el("ingredientRows"); ir.innerHTML=""; ((v&&v.ingredients.length)?v.ingredients:[null]).forEach(function(ing){ir.appendChild(makeIngredientRow(ing));});
+    var sr=el("sizeEditRows"); sr.innerHTML=""; ((s&&s.sizes.length)?s.sizes:[{label:"",lb:"",price:"",panCost:"",coverCost:""}]).forEach(function(sz){sr.appendChild(makeSizeRow(sz));});
+    el("ohLabourRate").value=oh.labourRate!=null?oh.labourRate:20; el("ohLabourHours").value=oh.labourHours!=null?oh.labourHours:2.5;
+    el("ohElec").value=oh.electricity!=null?oh.electricity:3; el("ohTransport").value=oh.transport!=null?oh.transport:10;
+    el("ohConsum").value=oh.consumables!=null?oh.consumables:2.5; el("taxRate").value=s?s.taxRate:30;
+    el("editorArea").style.display="block"; el("editorArea").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  function closeEditor(){ el("editorArea").style.display="none"; editingId=null; }
+  el("newRecipeBtn").addEventListener("click",function(){openEditor(null);});
+  el("addIngredientBtn").addEventListener("click",function(){el("ingredientRows").appendChild(makeIngredientRow());});
+  el("addSizeBtn").addEventListener("click",function(){el("sizeEditRows").appendChild(makeSizeRow());});
+  el("cancelEditBtn").addEventListener("click",closeEditor);
+  el("saveRecipeBtn").addEventListener("click",function(){
+    var name=el("recipeName").value.trim(); if(!name){alert("Please give the salad a name.");return;}
+    var bq=num(el("baseQty").value,0); if(bq<=0){alert("Base batch must be greater than zero.");return;}
+    var ings=[];
+    el("ingredientRows").querySelectorAll(".ing-row").forEach(function(r){
+      var n=r.querySelector(".i-name").value.trim(), a=num(r.querySelector(".i-amt").value,0); if(!n||a<=0) return; var prev=r._ing||{};
+      ings.push({name:n,amount:a,unit:r.querySelector(".i-unit").value.trim()||"g",buy:r.querySelector(".i-buy").value,
+        pkgSize:num(r.querySelector(".i-psize").value,0)||"",pkgLabel:r.querySelector(".i-plabel").value.trim(),
+        price:num(r.querySelector(".i-price").value,0),priceQty:num(r.querySelector(".i-pqty").value,0)||"",
+        store:r.querySelector(".i-store").value.trim(),note:r.querySelector(".i-note").value.trim(),
+        priceSince:prev.priceSince||"",priceHistory:prev.priceHistory||[]});
+    });
+    if(!ings.length){alert("Add at least one ingredient.");return;}
+    var sizes=[];
+    el("sizeEditRows").querySelectorAll(".ing-row").forEach(function(r){
+      var l=r.querySelector(".s-label").value.trim(), lb=num(r.querySelector(".s-lb").value,0); if(!l||lb<=0) return;
+      sizes.push({id:uidGen("z"),label:l,lb:lb,price:num(r.querySelector(".s-price").value,0),
+        panCost:num(r.querySelector(".s-pan").value,0),coverCost:num(r.querySelector(".s-cover").value,0),panNote:r.querySelector(".s-note").value.trim()});
+    });
+    if(!sizes.length){alert("Add at least one selling size.");return;}
+    var overhead={labourRate:num(el("ohLabourRate").value,0),labourHours:num(el("ohLabourHours").value,0),electricity:num(el("ohElec").value,0),transport:num(el("ohTransport").value,0),consumables:num(el("ohConsum").value,0)};
+    var taxRate=num(el("taxRate").value,0);
+    var verData={label:el("verLabel").value.trim()||"v1",date:el("verDate").value.trim(),baseQty:bq,baseUnit:el("baseUnit").value.trim()||"lb",ingredients:ings};
+    if(!editingId){ verData.vid=uidGen("v"); salads.push({id:uidGen("s"),name:name,currentVersionId:verData.vid,versions:[verData],sizes:sizes,overhead:overhead,taxRate:taxRate}); }
+    else{ var s=findSalad(editingId); s.name=name; s.sizes=sizes; s.overhead=overhead; s.taxRate=taxRate;
+      if(el("asNewVersion").checked){ verData.vid=uidGen("v"); s.versions.push(verData); s.currentVersionId=verData.vid; }
+      else{ var c=curVer(s); c.label=verData.label; c.date=verData.date; c.baseQty=verData.baseQty; c.baseUnit=verData.baseUnit; c.ingredients=verData.ingredients; } }
+    save(); closeEditor(); refreshRecipeSelect(); refreshRecipeList();
+  });
+  el("deleteRecipeBtn").addEventListener("click",function(){
+    if(!editingId) return; if(!confirm("Delete this salad and all its versions?")) return;
+    salads=salads.filter(function(s){return s.id!==editingId;}); save(); closeEditor(); refreshRecipeSelect(); refreshRecipeList();
+  });
+
+  // ---- prices ----
+  function openPrices(id){ closeEditor(); closeHistory(); priceId=id; renderPrices(); el("priceArea").style.display="block"; el("priceArea").scrollIntoView({behavior:"smooth",block:"start"}); }
+  function closePrices(){ el("priceArea").style.display="none"; priceId=null; }
+  function renderPrices(){
+    var s=findSalad(priceId); if(!s) return; var v=curVer(s);
+    el("priceTitle").textContent="Prices & stores — "+s.name;
+    var body=el("priceBody"); body.innerHTML="";
+    v.ingredients.forEach(function(ing){
+      var box=document.createElement("div"); box.className="price-item";
+      var cur="<div class='cur'>"+esc(ing.name)+"</div><div class='muted'>"+money(ing.price)+" for "+fmtG(ing.priceQty||ing.pkgSize||0)+" "+esc(ing.unit)+" ("+esc(ing.pkgLabel||"")+")"+(ing.store?" · "+esc(ing.store):"")+(ing.priceSince?" · since "+esc(ing.priceSince):"")+"</div>";
+      var hist=""; if(ing.priceHistory&&ing.priceHistory.length){ hist="<div class='price-hist'>"+ing.priceHistory.slice().reverse().map(function(h){return "was "+money(h.price)+"/"+fmtG(h.priceQty)+" "+esc(ing.unit)+(h.store?" · "+esc(h.store):"")+(h.until?" · until "+esc(h.until):"");}).join("<br>")+"</div>"; }
+      box.innerHTML=cur+hist+
+        "<div style='margin-top:8px;'><button class='btn-ghost-p btn-small pu-toggle'>Update price</button></div>"+
+        "<div class='pu-form' style='display:none;margin-top:8px;'>"+
+          "<div class='row'><div><label>New price $</label><input type='number' step='any' class='pu-price' value='"+ing.price+"'></div>"+
+          "<div><label>for how much</label><input type='number' step='any' class='pu-qty' value='"+(ing.priceQty||ing.pkgSize||"")+"'></div>"+
+          "<div><label>Store</label><input type='text' class='pu-store' value='"+esc(ing.store)+"'></div></div>"+
+          "<div class='row' style='margin-top:8px;'><div class='grow2'><label>Package name</label><input type='text' class='pu-label' value='"+esc(ing.pkgLabel)+"'></div>"+
+          "<div><label>Effective date</label><input type='date' class='pu-date' value='"+today()+"'></div></div>"+
+          "<div style='margin-top:8px;text-align:right;'><button class='btn-ghost btn-small pu-cancel'>Cancel</button> <button class='btn-primary btn-small pu-save'>Save new price</button></div>"+
+        "</div>";
+      var form=box.querySelector(".pu-form");
+      box.querySelector(".pu-toggle").addEventListener("click",function(){ form.style.display=form.style.display==="none"?"block":"none"; });
+      box.querySelector(".pu-cancel").addEventListener("click",function(){ form.style.display="none"; });
+      box.querySelector(".pu-save").addEventListener("click",function(){
+        var np=num(form.querySelector(".pu-price").value,ing.price), nq=num(form.querySelector(".pu-qty").value,ing.priceQty)||ing.priceQty;
+        var ns=form.querySelector(".pu-store").value.trim(), nl=form.querySelector(".pu-label").value.trim(), nd=form.querySelector(".pu-date").value||today();
+        if(!ing.priceHistory) ing.priceHistory=[];
+        ing.priceHistory.push({price:ing.price,priceQty:ing.priceQty||ing.pkgSize,store:ing.store,pkgLabel:ing.pkgLabel,until:nd});
+        ing.price=np; ing.priceQty=nq; ing.store=ns; if(nl) ing.pkgLabel=nl; ing.priceSince=nd;
+        save(); renderPrices(); renderOrder();
+      });
+      body.appendChild(box);
+    });
+  }
+  el("closePriceBtn").addEventListener("click",closePrices);
+
+  // ---- history ----
+  function openHistory(id){
+    closeEditor(); closePrices(); historyId=id; var s=findSalad(id);
+    el("historyTitle").textContent="History — "+s.name;
+    var body=el("historyBody"); body.innerHTML="";
+    s.versions.slice().reverse().forEach(function(v){
+      var isCur=v.vid===s.currentVersionId; var d=document.createElement("div"); d.className="ver"+(isCur?" current":"");
+      var lines=v.ingredients.map(function(i){return "• "+esc(i.name)+": "+fmtG(i.amount)+" "+esc(i.unit);}).join("<br>");
+      d.innerHTML="<div class='flex-between'><h4>"+esc(v.label)+(v.date?" <span class='muted'>("+esc(v.date)+")</span>":"")+(isCur?" <span class='pill'>current</span>":"")+"</h4>"+(isCur?"":"<button class='btn-ghost btn-small mk'>Make current</button>")+"</div>"+
+        "<div class='muted' style='margin-top:6px;'>base "+fmtG(v.baseQty)+" "+esc(v.baseUnit)+"<br>"+lines+"</div>";
+      var mk=d.querySelector(".mk");
+      if(mk) mk.addEventListener("click",function(){ s.currentVersionId=v.vid; save(); refreshRecipeSelect(); refreshRecipeList(); openHistory(id); });
+      body.appendChild(d);
+    });
+    el("historyArea").style.display="block"; el("historyArea").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  function closeHistory(){ el("historyArea").style.display="none"; historyId=null; }
+  el("closeHistoryBtn").addEventListener("click",closeHistory);
+
+  // ---- backup ----
+  el("backupBtn").addEventListener("click",function(){
+    var blob=new Blob([JSON.stringify(salads,null,2)],{type:"application/json"});
+    var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="just-salads-backup.json"; a.click(); URL.revokeObjectURL(a.href);
+  });
+  el("restoreBtn").addEventListener("click",function(){ el("restoreFile").click(); });
+  el("restoreFile").addEventListener("change",function(e){
+    var f=e.target.files[0]; if(!f) return; var rd=new FileReader();
+    rd.onload=function(){ try{ var d=JSON.parse(rd.result); if(!Array.isArray(d)) throw 0; if(!confirm("Load this backup and sync it to all your devices?")) return; salads=d; save(); refreshRecipeSelect(); refreshRecipeList(); alert("Loaded and syncing."); }catch(x){ alert("That file could not be read as a backup."); } };
+    rd.readAsText(f); e.target.value="";
+  });
+
+  // ---- start ----
+  try{ var c=localStorage.getItem(CACHE_KEY); if(c){ salads=JSON.parse(c)||[]; refreshRecipeSelect(); refreshRecipeList(); } }catch(e){}
+  initFirebase();
+})();
+</script>
+</body>
+</html>
