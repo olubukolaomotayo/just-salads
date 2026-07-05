@@ -1,0 +1,6 @@
+# Never commit real business data (recipes, prices, suppliers)
+*backup*.json
+just-salads*.json
+*REAL*.json
+*private*
+.DS_Store
