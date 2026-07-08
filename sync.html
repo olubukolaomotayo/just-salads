@@ -74,12 +74,15 @@
   <div class="box">
     <img src="logo.jpeg" alt="Just Salads" />
     <h1>Just Salads</h1>
-    <p>Sign in to sync your recipes and prices across your phone and laptops.</p>
-    <button id="googleBtn">
-      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.5 28.3c-.5-1.4-.8-2.9-.8-4.3s.3-3 .8-4.3l-7.9-6.1C1 16.7 0 20.2 0 24s1 7.3 2.6 10.4l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.3 0-11.6-3.7-13.5-9.3l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
-      Sign in with Google
-    </button>
+    <p id="loginSub">Sign in to sync your recipes across your devices.</p>
+    <input type="email" id="emailInput" placeholder="Email" autocomplete="username" style="margin-bottom:10px;" />
+    <input type="password" id="passInput" placeholder="Password" autocomplete="current-password" style="margin-bottom:12px;" />
+    <button id="authBtn" class="btn-primary" style="width:100%;">Sign in</button>
     <div id="loginMsg"></div>
+    <div style="margin-top:14px;display:flex;justify-content:space-between;font-size:.82rem;">
+      <button id="toggleMode" style="background:none;border:none;color:#fff;text-decoration:underline;cursor:pointer;padding:0;">New here? Create account</button>
+      <button id="resetBtn" style="background:none;border:none;color:#fff;opacity:.85;cursor:pointer;padding:0;">Forgot password?</button>
+    </div>
   </div>
 </div>
 
@@ -244,26 +247,42 @@ var firebaseConfig = {
   function configReady(){ return firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("PASTE")!==0; }
 
   function initFirebase(){
-    if(!configReady()){ el("loginMsg").textContent="Setup not finished yet. Add your Firebase details to activate sync."; el("googleBtn").disabled=true; el("googleBtn").style.opacity=".6"; return; }
+    if(!configReady()){ el("loginMsg").textContent="Setup not finished yet. Add your Firebase details to activate sync."; el("authBtn").disabled=true; el("authBtn").style.opacity=".6"; return; }
     firebase.initializeApp(firebaseConfig);
     auth=firebase.auth(); db=firebase.firestore();
     try{ db.enablePersistence({synchronizeTabs:true}).catch(function(){}); }catch(e){}
-    auth.getRedirectResult().catch(function(err){ el("loginMsg").textContent=err.message||""; });
     auth.onAuthStateChanged(onAuth);
   }
 
-  function isMobile(){ return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && /Macintosh/.test(navigator.userAgent)); }
-  function signIn(){
-    var provider=new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({prompt:"select_account"});
-    el("loginMsg").textContent="Opening Google sign-in...";
-    // On phones/tablets, popups fail ("cannot open this page"): redirect the whole page instead.
-    if(isMobile()){ auth.signInWithRedirect(provider).catch(function(err){ el("loginMsg").textContent=err.message||"Sign-in failed."; }); return; }
-    auth.signInWithPopup(provider).catch(function(err){
-      if(err && (err.code==="auth/popup-blocked"||err.code==="auth/operation-not-supported-in-this-environment"||err.code==="auth/cancelled-popup-request"||err.code==="auth/popup-closed-by-user")){
-        auth.signInWithRedirect(provider);
-      } else { el("loginMsg").textContent=err.message||"Sign-in failed."; }
-    });
+  var authMode="signin";
+  function doAuth(){
+    var email=el("emailInput").value.trim(), pass=el("passInput").value;
+    if(!email||!pass){ el("loginMsg").textContent="Enter your email and password."; return; }
+    el("loginMsg").textContent="Please wait...";
+    var p = authMode==="signin" ? auth.signInWithEmailAndPassword(email,pass) : auth.createUserWithEmailAndPassword(email,pass);
+    p.catch(function(err){ el("loginMsg").textContent=friendlyErr(err); });
+  }
+  function friendlyErr(err){
+    var c=(err&&err.code)||"";
+    if(c==="auth/wrong-password"||c==="auth/invalid-credential") return "Wrong email or password.";
+    if(c==="auth/user-not-found") return "No account with that email yet. Tap Create account.";
+    if(c==="auth/email-already-in-use") return "That email already has an account. Switch to Sign in.";
+    if(c==="auth/weak-password") return "Password too short. Use at least 6 characters (longer is safer).";
+    if(c==="auth/invalid-email") return "That email does not look right.";
+    if(c==="auth/operation-not-allowed") return "Email sign-in is not switched on yet in Firebase.";
+    if(c==="auth/network-request-failed") return "Network problem. Check your connection and try again.";
+    return (err&&err.message)||"Something went wrong.";
+  }
+  function setMode(m){ authMode=m;
+    el("authBtn").textContent=m==="signin"?"Sign in":"Create account";
+    el("toggleMode").textContent=m==="signin"?"New here? Create account":"Have an account? Sign in";
+    el("loginSub").textContent=m==="signin"?"Sign in to sync your recipes across your devices.":"Create your account to start syncing.";
+    el("passInput").setAttribute("autocomplete",m==="signin"?"current-password":"new-password");
+    el("loginMsg").textContent="";
+  }
+  function doReset(){
+    var email=el("emailInput").value.trim(); if(!email){ el("loginMsg").textContent="Type your email first, then tap Forgot password."; return; }
+    auth.sendPasswordResetEmail(email).then(function(){ el("loginMsg").textContent="Password reset email sent. Check your inbox."; }).catch(function(err){ el("loginMsg").textContent=friendlyErr(err); });
   }
 
   function onAuth(user){
@@ -306,7 +325,10 @@ var firebaseConfig = {
     }
   }
 
-  el("googleBtn").addEventListener("click",signIn);
+  el("authBtn").addEventListener("click",doAuth);
+  el("passInput").addEventListener("keydown",function(e){ if(e.key==="Enter") doAuth(); });
+  el("toggleMode").addEventListener("click",function(){ setMode(authMode==="signin"?"create":"signin"); });
+  el("resetBtn").addEventListener("click",doReset);
   el("signOutBtn").addEventListener("click",function(){ if(auth) auth.signOut(); });
 
   // ---------- helpers ----------

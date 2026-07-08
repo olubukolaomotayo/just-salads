@@ -3,8 +3,9 @@
 The synced app is protected in layers. No single thing is trusted on its own.
 
 ## 1. Login (who gets in)
-- Google sign-in only. Access rides on the owner's Google account, including its 2FA and Face ID.
-- No app-specific password to leak.
+- Email + password (Firebase Authentication). Chosen for reliability on iOS, where Google sign-in loops due to Safari/WebKit cross-site storage rules (affects Chrome on iOS too, since it uses WebKit).
+- The phone saves the password in the device keychain, so unlock is still a Face ID glance.
+- Use a strong, unique password. Password reset by email is available. True 2FA is not on the free tier; can be added later (paid Identity Platform or a same-domain hosting move to re-enable Google).
 
 ## 2. Database rules (what they can touch) — REQUIRED
 The Firebase web config in `sync.html` is **not a secret** (Google designs it to be public). Real protection is the Firestore rules in `firestore.rules`, which must be pasted into the Firebase console:
