@@ -75,13 +75,15 @@
     <img src="logo.jpeg" alt="Just Salads" />
     <h1>Just Salads</h1>
     <p id="loginSub">Sign in to sync your recipes across your devices.</p>
-    <input type="email" id="emailInput" placeholder="Email" autocomplete="username" style="margin-bottom:10px;" />
-    <input type="password" id="passInput" placeholder="Password" autocomplete="current-password" style="margin-bottom:12px;" />
-    <button id="authBtn" class="btn-primary" style="width:100%;">Sign in</button>
+    <form id="authForm" autocomplete="on">
+      <input type="email" id="emailInput" name="email" placeholder="Email" autocomplete="username" autocapitalize="none" spellcheck="false" style="margin-bottom:10px;" />
+      <input type="password" id="passInput" name="password" placeholder="Password" autocomplete="current-password" style="margin-bottom:12px;" />
+      <button id="authBtn" type="submit" class="btn-primary" style="width:100%;">Sign in</button>
+    </form>
     <div id="loginMsg"></div>
     <div style="margin-top:14px;display:flex;justify-content:space-between;font-size:.82rem;">
-      <button id="toggleMode" style="background:none;border:none;color:#fff;text-decoration:underline;cursor:pointer;padding:0;">New here? Create account</button>
-      <button id="resetBtn" style="background:none;border:none;color:#fff;opacity:.85;cursor:pointer;padding:0;">Forgot password?</button>
+      <button id="toggleMode" type="button" style="background:none;border:none;color:#fff;text-decoration:underline;cursor:pointer;padding:0;">New here? Create account</button>
+      <button id="resetBtn" type="button" style="background:none;border:none;color:#fff;opacity:.85;cursor:pointer;padding:0;">Forgot password?</button>
     </div>
   </div>
 </div>
@@ -325,8 +327,7 @@ var firebaseConfig = {
     }
   }
 
-  el("authBtn").addEventListener("click",doAuth);
-  el("passInput").addEventListener("keydown",function(e){ if(e.key==="Enter") doAuth(); });
+  el("authForm").addEventListener("submit",function(e){ e.preventDefault(); doAuth(); });
   el("toggleMode").addEventListener("click",function(){ setMode(authMode==="signin"?"create":"signin"); });
   el("resetBtn").addEventListener("click",doReset);
   el("signOutBtn").addEventListener("click",function(){ if(auth) auth.signOut(); });
