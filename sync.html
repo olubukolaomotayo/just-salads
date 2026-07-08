@@ -252,11 +252,14 @@ var firebaseConfig = {
     auth.onAuthStateChanged(onAuth);
   }
 
+  function isMobile(){ return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && /Macintosh/.test(navigator.userAgent)); }
   function signIn(){
     var provider=new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({prompt:"select_account"});
     el("loginMsg").textContent="Opening Google sign-in...";
+    // On phones/tablets, popups fail ("cannot open this page"): redirect the whole page instead.
+    if(isMobile()){ auth.signInWithRedirect(provider).catch(function(err){ el("loginMsg").textContent=err.message||"Sign-in failed."; }); return; }
     auth.signInWithPopup(provider).catch(function(err){
-      // popups are often blocked in phone home-screen apps: fall back to redirect
       if(err && (err.code==="auth/popup-blocked"||err.code==="auth/operation-not-supported-in-this-environment"||err.code==="auth/cancelled-popup-request"||err.code==="auth/popup-closed-by-user")){
         auth.signInWithRedirect(provider);
       } else { el("loginMsg").textContent=err.message||"Sign-in failed."; }
