@@ -147,6 +147,29 @@
   </div>
 
 
+  <div class="card" id="logCard" style="display:none;">
+    <h2>Log this order</h2>
+    <p class="muted" style="margin:0 0 10px;">Save this order so it appears in your analytics below.</p>
+    <div class="row">
+      <div><label for="logDate">Date</label><input type="date" id="logDate" /></div>
+      <div class="grow2"><label for="logRef">Reference (optional)</label><input type="text" id="logRef" placeholder="customer / note" /></div>
+    </div>
+    <button id="logOrderBtn" class="btn-purple" style="width:100%;margin-top:10px;">Log this order</button>
+    <div id="logMsg" class="muted center" style="margin-top:8px;"></div>
+  </div>
+
+  <div class="card" id="analyticsCard">
+    <div class="flex-between" style="margin-bottom:10px;"><h2 style="margin:0;">Analytics</h2>
+      <select id="anPeriod" style="width:auto;"><option value="all">All time</option><option value="month">This month</option><option value="week">This week</option></select></div>
+    <div id="anTiles" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+    <h3>Profit over time</h3><div id="anProfit"></div>
+    <h3>Best-selling sizes</h3><div id="anSizes"></div>
+    <h3>Margin trend</h3><div id="anMargin"></div>
+    <h3>Order log</h3>
+    <div class="toolbar" style="justify-content:flex-start;margin-bottom:6px;"><button class="btn-ghost btn-small" id="anExport">Export CSV</button></div>
+    <div id="anOrders"></div>
+  </div>
+
   <div class="card">
     <div class="flex-between" style="margin-bottom:8px;"><h2 style="margin:0;">Your salads &amp; settings</h2>
       <button class="btn-ghost btn-small" id="newRecipeBtn">+ New salad</button></div>
@@ -241,7 +264,7 @@ var firebaseConfig = {
 <script>
 (function(){
   "use strict";
-  var CACHE_KEY="justSalads.cache", salads=[], editingId=null, historyId=null, priceId=null, orderQty={}, orderExtra=0;
+  var CACHE_KEY="justSalads.cache", salads=[], orders=[], editingId=null, historyId=null, priceId=null, orderQty={}, orderExtra=0, lastOrder=null, anPeriodKind="all";
   var auth=null, db=null, uid=null, unsub=null, saveTimer=null, ready=false;
   var el=function(id){return document.getElementById(id);};
 
@@ -304,24 +327,25 @@ var firebaseConfig = {
   function startSync(){
     setSyncBar("wait","Connecting to your cloud...");
     unsub=db.collection("users").doc(uid).onSnapshot(function(doc){
-      var data=(doc.exists && doc.data().salads) ? doc.data().salads : null;
-      salads = Array.isArray(data)?data:[];
+      var d=doc.exists ? doc.data() : null;
+      salads = (d && Array.isArray(d.salads)) ? d.salads : [];
+      orders = (d && Array.isArray(d.orders)) ? d.orders : [];
       cacheLocal(); ready=true;
       var from = doc.metadata.fromCache ? "offline copy" : "synced";
       setSyncBar("ok","All changes save to your cloud automatically · "+from);
-      refreshRecipeSelect(); refreshRecipeList();
+      refreshRecipeSelect(); refreshRecipeList(); renderAnalytics();
     }, function(err){ setSyncBar("wait","Offline. Changes save locally and sync when you reconnect."); });
   }
 
   function setSyncBar(kind,msg){ var b=el("syncBar"); b.textContent=msg; b.className="syncbar "+(kind==="ok"?"cloud-ok":"cloud-wait"); }
-  function cacheLocal(){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify(salads)); }catch(e){} }
+  function cacheLocal(){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({salads:salads, orders:orders})); }catch(e){} }
 
   function save(){
     cacheLocal();
     if(db && uid){
       if(saveTimer) clearTimeout(saveTimer);
       saveTimer=setTimeout(function(){
-        db.collection("users").doc(uid).set({salads:salads, updated: firebase.firestore.FieldValue.serverTimestamp()})
+        db.collection("users").doc(uid).set({salads:salads, orders:orders, updated: firebase.firestore.FieldValue.serverTimestamp()})
           .catch(function(){ setSyncBar("wait","Saved locally. Will sync when you reconnect."); });
       },400);
     }
@@ -386,7 +410,7 @@ var firebaseConfig = {
     var extraLb=orderExtra||0, totalLb=paidLb+extraLb;
     el("totalLb").innerHTML=(Math.round(totalLb*100)/100)+" lb"+(extraLb>0?"<br><span class='muted' style='font-size:.7rem;'>"+(Math.round(paidLb*100)/100)+" sold + "+(Math.round(extraLb*100)/100)+" extra</span>":"");
     el("totalContainers").textContent=containers; el("totalRevenue").textContent=money(revenue);
-    if(totalLb<=0||!v.baseQty){ el("moneyCard").style.display="none"; el("shopCard").style.display="none"; return; }
+    if(totalLb<=0||!v.baseQty){ el("moneyCard").style.display="none"; el("shopCard").style.display="none"; el("logCard").style.display="none"; lastOrder=null; return; }
     var factor=totalLb/v.baseQty, ingUsed=0, ingBuy=0, shopHtml="", shopSpend=0;
     v.ingredients.forEach(function(ing){
       var r=computeIngredient(ing,factor); ingUsed+=r.usedCost; ingBuy+=r.buyCost; shopSpend+=r.buyCost;
@@ -405,8 +429,86 @@ var firebaseConfig = {
     setMoney("mProfit",profit); el("taxPctLabel").textContent=taxRate; el("mTax").textContent=money(tax); setMoney("mKeep",keep);
     el("mMargin").textContent=(Math.round(margin*10)/10)+"%"; el("mIngBuy").textContent=money(ingBuy); el("mTotalCostBuy").textContent=money(totalBuy);
     setMoney("mProfitBuy",profitBuy); el("moneyCard").style.display="block";
+    lastOrder={ saladId:s.id, saladName:s.name,
+      lines: s.sizes.map(function(sz){return {label:sz.label,lb:sz.lb,price:sz.price,qty:orderQty[sz.id]||0};}).filter(function(x){return x.qty>0;}),
+      extraLb:extraLb, totalLb:totalLb, containers:containers, revenue:revenue, ingredientUsed:ingUsed,
+      packaging:packaging, overhead:overhead, totalCost:totalUsed, profit:profit, tax:tax, keep:keep, margin:margin };
+    if(!el("logDate").value) el("logDate").value=today();
+    el("logCard").style.display="block";
   }
   function setMoney(id,v){ var n=el(id); n.textContent=money(v); n.classList.toggle("neg",v<0); }
+
+  // ---- log order + analytics ----
+  function logCurrentOrder(){
+    if(!lastOrder || !lastOrder.totalLb){ el("logMsg").textContent="Build an order first."; return; }
+    var o=JSON.parse(JSON.stringify(lastOrder));
+    o.id=uidGen("o"); o.date=el("logDate").value||today(); o.ref=el("logRef").value.trim();
+    orders.push(o); save();
+    el("logRef").value=""; el("logMsg").textContent="Order logged for "+o.date+".";
+    renderAnalytics();
+  }
+  function inPeriod(dstr){
+    if(anPeriodKind==="all") return true;
+    if(!dstr) return false;
+    var d=new Date(dstr+"T00:00:00"), now=new Date();
+    if(anPeriodKind==="week"){ var s=new Date(now); s.setDate(now.getDate()-6); s.setHours(0,0,0,0); return d>=s; }
+    if(anPeriodKind==="month"){ return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }
+    return true;
+  }
+  function tile(label,val){ return "<div style='flex:1;min-width:88px;background:var(--shade);border-radius:10px;padding:10px;text-align:center;'><div style='font-size:1.05rem;font-weight:800;color:var(--purple);'>"+esc(String(val))+"</div><div class='muted' style='font-size:.7rem;'>"+esc(label)+"</div></div>"; }
+  function bar(label,val,max,valText,color){
+    var pct=max>0?Math.round(val/max*100):0;
+    return "<div style='margin:6px 0;'><div style='display:flex;justify-content:space-between;font-size:.8rem;'><span>"+esc(label)+"</span><span class='muted'>"+esc(valText)+"</span></div>"+
+      "<div style='background:var(--shade);border-radius:6px;height:10px;overflow:hidden;'><div style='width:"+pct+"%;height:10px;background:"+(color||"var(--green)")+";'></div></div></div>";
+  }
+  function renderAnalytics(){
+    if(!el("analyticsCard")) return;
+    var list=orders.filter(function(o){return inPeriod(o.date);});
+    var n=list.length, rev=0, prof=0, tax=0;
+    list.forEach(function(o){ rev+=o.revenue||0; prof+=o.profit||0; tax+=o.tax||0; });
+    var margin=rev>0?(prof/rev*100):0;
+    el("anTiles").innerHTML=tile("Orders",n)+tile("Revenue",money(rev))+tile("Profit",money(prof))+tile("Tax set aside",money(tax))+tile("Avg margin",(Math.round(margin*10)/10)+"%");
+    var byBucket={}, keysOrder=[];
+    list.slice().sort(function(a,b){return (a.date||"")<(b.date||"")?-1:1;}).forEach(function(o){
+      var key=anPeriodKind==="all"?(o.date||"").slice(0,7):(o.date||"");
+      if(!(key in byBucket)){ byBucket[key]={rev:0,prof:0}; keysOrder.push(key); }
+      byBucket[key].rev+=o.revenue||0; byBucket[key].prof+=o.profit||0;
+    });
+    var recent=keysOrder.slice(-14), maxP=0;
+    recent.forEach(function(k){ if(byBucket[k].prof>maxP) maxP=byBucket[k].prof; });
+    var ph=""; recent.forEach(function(k){ ph+=bar(k,byBucket[k].prof,maxP,money(byBucket[k].prof)); });
+    el("anProfit").innerHTML=ph||"<p class='muted'>No orders in this period yet.</p>";
+    var mh=""; recent.forEach(function(k){ var b=byBucket[k], m=b.rev>0?(b.prof/b.rev*100):0; mh+=bar(k,m,100,(Math.round(m*10)/10)+"%","var(--amber)"); });
+    el("anMargin").innerHTML=mh||"<p class='muted'>No data yet.</p>";
+    var sizeQty={};
+    list.forEach(function(o){ (o.lines||[]).forEach(function(l){ sizeQty[l.label]=(sizeQty[l.label]||0)+(l.qty||0); }); });
+    var sk=Object.keys(sizeQty), maxQ=0; sk.forEach(function(k){ if(sizeQty[k]>maxQ) maxQ=sizeQty[k]; });
+    sk.sort(function(a,b){return sizeQty[b]-sizeQty[a];});
+    var sh=""; sk.forEach(function(k){ sh+=bar(k,sizeQty[k],maxQ,sizeQty[k]+" sold","var(--purple)"); });
+    el("anSizes").innerHTML=sh||"<p class='muted'>No sizes logged yet.</p>";
+    var oh="";
+    list.slice().sort(function(a,b){return (a.date||"")>(b.date||"")?-1:1;}).slice(0,60).forEach(function(o){
+      oh+="<div class='shop-item'><div><div class='shop-name'>"+esc(o.date||"")+(o.ref?" · "+esc(o.ref):"")+"</div>"+
+        "<div class='muted'>"+esc(o.saladName||"")+" · "+(o.containers||0)+" containers · "+(Math.round((o.totalLb||0)*10)/10)+" lb</div></div>"+
+        "<div class='shop-buy'><div class='big'>"+money(o.profit||0)+"</div><div class='sub'>rev "+money(o.revenue||0)+" · tax "+money(o.tax||0)+" <button class='btn-danger btn-small an-del' data-id='"+esc(o.id)+"' style='margin-left:6px;'>✕</button></div></div></div>";
+    });
+    el("anOrders").innerHTML=oh||"<p class='muted'>No orders logged yet. Build an order and tap \"Log this order\".</p>";
+    el("anOrders").querySelectorAll(".an-del").forEach(function(b){ b.addEventListener("click",function(){
+      var id=b.getAttribute("data-id"); if(!confirm("Delete this logged order?")) return;
+      orders=orders.filter(function(o){return o.id!==id;}); save(); renderAnalytics();
+    });});
+  }
+  function exportOrdersCsv(){
+    var rows=[["Date","Salad","Reference","Containers","Total lb","Revenue","Cost","Profit","Tax","Margin %"]];
+    orders.slice().sort(function(a,b){return (a.date||"")>(b.date||"")?-1:1;}).forEach(function(o){
+      rows.push([o.date||"",o.saladName||"",o.ref||"",o.containers||0,Math.round((o.totalLb||0)*100)/100,(o.revenue||0).toFixed(2),(o.totalCost||0).toFixed(2),(o.profit||0).toFixed(2),(o.tax||0).toFixed(2),Math.round((o.margin||0)*10)/10]);
+    });
+    var csv=rows.map(function(r){return r.map(function(c){var s=String(c);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(",");}).join("\n");
+    var blob=new Blob([csv],{type:"text/csv"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="just-salads-orders.csv"; a.click(); URL.revokeObjectURL(a.href);
+  }
+  el("logOrderBtn").addEventListener("click",logCurrentOrder);
+  el("anPeriod").addEventListener("change",function(){ anPeriodKind=el("anPeriod").value; renderAnalytics(); });
+  el("anExport").addEventListener("click",exportOrdersCsv);
 
   el("recipeSelect").addEventListener("change",function(){ orderQty={}; orderExtra=0; renderOrder(); });
   el("extraLb").addEventListener("input",function(){ orderExtra=num(el("extraLb").value,0); recalc(); });
@@ -578,18 +680,18 @@ var firebaseConfig = {
 
   // ---- backup ----
   el("backupBtn").addEventListener("click",function(){
-    var blob=new Blob([JSON.stringify(salads,null,2)],{type:"application/json"});
+    var blob=new Blob([JSON.stringify({salads:salads, orders:orders},null,2)],{type:"application/json"});
     var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="just-salads-backup.json"; a.click(); URL.revokeObjectURL(a.href);
   });
   el("restoreBtn").addEventListener("click",function(){ el("restoreFile").click(); });
   el("restoreFile").addEventListener("change",function(e){
     var f=e.target.files[0]; if(!f) return; var rd=new FileReader();
-    rd.onload=function(){ try{ var d=JSON.parse(rd.result); if(!Array.isArray(d)) throw 0; if(!confirm("Load this backup and sync it to all your devices?")) return; salads=d; save(); refreshRecipeSelect(); refreshRecipeList(); alert("Loaded and syncing."); }catch(x){ alert("That file could not be read as a backup."); } };
+    rd.onload=function(){ try{ var d=JSON.parse(rd.result); var ns,no=[]; if(Array.isArray(d)){ns=d;} else if(d&&Array.isArray(d.salads)){ns=d.salads; no=Array.isArray(d.orders)?d.orders:[];} else throw 0; if(!confirm("Load this backup and sync it to all your devices?")) return; salads=ns; orders=no; save(); refreshRecipeSelect(); refreshRecipeList(); renderAnalytics(); alert("Loaded and syncing."); }catch(x){ alert("That file could not be read as a backup."); } };
     rd.readAsText(f); e.target.value="";
   });
 
   // ---- start ----
-  try{ var c=localStorage.getItem(CACHE_KEY); if(c){ salads=JSON.parse(c)||[]; refreshRecipeSelect(); refreshRecipeList(); } }catch(e){}
+  try{ var c=localStorage.getItem(CACHE_KEY); if(c){ var o=JSON.parse(c); if(Array.isArray(o)){ salads=o; } else if(o){ salads=o.salads||[]; orders=o.orders||[]; } refreshRecipeSelect(); refreshRecipeList(); renderAnalytics(); } }catch(e){}
   initFirebase();
 })();
 </script>
